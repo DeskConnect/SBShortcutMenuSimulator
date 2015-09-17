@@ -1,8 +1,6 @@
 # SBShortcutMenuSimulator
 
-`SBShortcutMenuSimulator` is a tweak for the iPhone simulator that allows you to simulate the new `UIApplicationShortcutItem` API for iPhones with 3D touch enabled.
-
-This was released before the iPhone 6s was released to the public.
+`SBShortcutMenuSimulator` is a tweak for the iPhone Simulator that allows you to simulate the new `UIApplicationShortcutItem` API for iPhone with 3D Touch enabled.
 
 ## Requirements
 
@@ -10,11 +8,16 @@ This was released before the iPhone 6s was released to the public.
 
 ## Installation
 
+**Note:** Installing SBShortcutMenuSimulator makes a minor change to your Xcode installation, which will invalidate Xcode's code signature. Uninstalling (as described below) will restore Xcode to its original state.
+
 ``` sh
 git clone https://github.com/DeskConnect/SBShortcutMenuSimulator.git
 cd SBShortcutMenuSimulator
 make
-plutil -replace EnvironmentVariables -json "{\"DYLD_INSERT_LIBRARIES\": \"${PWD}/SBShortcutMenuSimulator.dylib\"}" "$(xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
+
+PLIST_PATH="$(xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
+cp "${PLIST_PATH}" com.apple.SpringBoard.plist.bak
+plutil -replace EnvironmentVariables -json "{\"DYLD_INSERT_LIBRARIES\": \"${PWD}/SBShortcutMenuSimulator.dylib\"}" "${PLIST_PATH}"
 killall SpringBoard
 ```
 
@@ -27,7 +30,7 @@ echo 'com.apple.mobilecal' | ncat 127.0.0.1 8000
 ## Uninstallation
 
 ``` sh
-plutil -remove EnvironmentVariables "$(xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
+cp "com.apple.SpringBoard.plist.bak" "$(xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
 killall SpringBoard
 ```
 
