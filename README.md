@@ -23,6 +23,8 @@ killall SpringBoard
 
 ## Usage
 
+To show an app's quick action menu, send the app's bundle identifier over TCP to port 8000. For example, running this command will show the shortcut menu for Calendar.
+
 ``` sh
 echo 'com.apple.mobilecal' | ncat 127.0.0.1 8000
 ```
