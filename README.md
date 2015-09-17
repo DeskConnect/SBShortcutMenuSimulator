@@ -29,6 +29,8 @@ To show an app's quick action menu, send the app's bundle identifier over TCP to
 echo 'com.apple.mobilecal' | ncat 127.0.0.1 8000
 ```
 
+![Calendar's shortcuts](https://raw.githubusercontent.com/DeskConnect/SBShortcutMenuSimulator/screenshot/Shortcuts.png)
+
 ## Uninstallation
 
 ``` sh
