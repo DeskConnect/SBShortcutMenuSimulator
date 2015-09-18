@@ -28,7 +28,7 @@ xcrun simctl spawn booted launchctl stop com.apple.SpringBoard
 Now, to show an app's quick action menu, send the app's bundle identifier over TCP to port 8000. For example, running this command will show the shortcut menu for Calendar:
 
 ``` sh
-echo 'com.apple.mobilecal' | ncat 127.0.0.1 8000
+echo 'com.apple.mobilecal' | nc 127.0.0.1 8000
 ```
 
 <img src="https://raw.githubusercontent.com/DeskConnect/SBShortcutMenuSimulator/screenshot/Shortcuts.png" width="326" height="592"></img>
