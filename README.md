@@ -6,37 +6,32 @@
 
 - Xcode 7 GM or later, set as your default version of Xcode
 
-## Installation
-
-**Note:** Installing SBShortcutMenuSimulator makes a minor change to your Xcode installation, which will invalidate Xcode's code signature. Uninstalling (as described below) will restore Xcode to its original state.
+## Build
 
 ``` sh
 git clone https://github.com/DeskConnect/SBShortcutMenuSimulator.git
 cd SBShortcutMenuSimulator
 make
-
-PLIST_PATH="$(xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
-cp "${PLIST_PATH}" com.apple.SpringBoard.plist.bak
-plutil -replace EnvironmentVariables -json "{\"DYLD_INSERT_LIBRARIES\": \"${PWD}/SBShortcutMenuSimulator.dylib\"}" "${PLIST_PATH}"
-killall SpringBoard
 ```
+
+**Note:** If you installed SBShortcutMenuSimulator using the old method, go [here](https://github.com/DeskConnect/SBShortcutMenuSimulator/blob/85c3d73b9e22a20e5c59144fa1b3d19883a68f0e/README.md) and follow the uninstallation directions.
 
 ## Usage
 
-To show an app's quick action menu, send the app's bundle identifier over TCP to port 8000. For example, running this command will show the shortcut menu for Calendar.
+First, start SpringBoard with SBShortcutMenuSimulator enabled (run this from the cloned directory):
+
+``` sh
+xcrun simctl spawn booted launchctl debug system/com.apple.SpringBoard --environment DYLD_INSERT_LIBRARIES=$PWD/SBShortcutMenuSimulator.dylib
+xcrun simctl spawn booted launchctl stop com.apple.SpringBoard
+```
+
+Now, to show an app's quick action menu, send the app's bundle identifier over TCP to port 8000. For example, running this command will show the shortcut menu for Calendar:
 
 ``` sh
 echo 'com.apple.mobilecal' | ncat 127.0.0.1 8000
 ```
 
 <img src="https://raw.githubusercontent.com/DeskConnect/SBShortcutMenuSimulator/screenshot/Shortcuts.png" width="326" height="592"></img>
-
-## Uninstallation
-
-``` sh
-cp "com.apple.SpringBoard.plist.bak" "$(xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
-killall SpringBoard
-```
 
 ## License
 
