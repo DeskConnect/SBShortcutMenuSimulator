@@ -1,4 +1,4 @@
-CLANG_SIMULATOR = xcrun --sdk iphonesimulator clang -Os -miphoneos-version-min=9.0 -isysroot `xcrun --sdk iphonesimulator --show-sdk-path` -arch i386 -arch x86_64 -fobjc-arc -fmodules
+CLANG_SIMULATOR = xcrun --sdk iphonesimulator clang -Os -miphoneos-version-min=9.0 -isysroot "`xcrun --sdk iphonesimulator --show-sdk-path`" -arch i386 -arch x86_64 -fobjc-arc -fmodules
 
 all: SBShortcutMenuSimulator.dylib
 
