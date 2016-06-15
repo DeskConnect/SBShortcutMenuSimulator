@@ -2,6 +2,8 @@
 #import <objc/runtime.h>
 #include <arpa/inet.h>
 
+#define ANY_DEVICE
+
 // Many interfaces here, obviously a tough research
 @interface SBUIForceTouchGestureRecognizer : UIGestureRecognizer
 @end
@@ -68,7 +70,8 @@
 - (void)_runAppIconForceTouchTest:(NSString *)test withOptions:(NSDictionary *)options;
 @end
 
-// These hacks are required in iOS 10
+#ifdef ANY_DEVICE
+
 @implementation UITraitCollection (Hack)
 
 + (void)load
@@ -117,6 +120,8 @@
 }
 
 @end
+
+#endif
 
 static dispatch_source_t server = nil;
 
