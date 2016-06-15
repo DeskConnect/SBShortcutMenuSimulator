@@ -176,9 +176,11 @@ static void SBShortcutMenuListenerInitialize() {
 				if ([UIDevice.currentDevice.systemVersion floatValue] >= 10) {
 					
 					// There exists SpringBoard test for App icon Force Touch, but I don't know how to get it working yet
-					/*NSDictionary *options = @{ @"testApplication" : [icon retain] };
-                	[controller _runAppIconForceTouchTest:@"AppIconForceTouchPeek" withOptions:options];
-                	[controller _runAppIconForceTouchTest:@"AppIconForceTouchPresent" withOptions:options];*/
+					/*
+					NSDictionary *options = @{ @"testApplication" : [icon retain] };
+					[controller _runAppIconForceTouchTest:@"AppIconForceTouchPeek" withOptions:options];
+					[controller _runAppIconForceTouchTest:@"AppIconForceTouchPresent" withOptions:options];
+                	*/
                 	
                 	SBIconView *iconView = [[controller homescreenIconViewMap] mappedIconViewForIcon:icon];
                 	SBUIForceTouchGestureRecognizer *recognizer = [iconView appIconForceTouchGestureRecognizer];
