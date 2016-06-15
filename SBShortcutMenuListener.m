@@ -1,11 +1,21 @@
 #import <UIKit/UIKit.h>
-
+#import <objc/runtime.h>
 #include <arpa/inet.h>
 
+// Many interfaces here, obviously a tough research
+@interface SBUIForceTouchGestureRecognizer : UIGestureRecognizer
+@end
+
+@interface SBApplication : NSObject
+@end
+
 @interface SBIcon : NSObject
+- (SBApplication *)application;
 @end
 
 @interface SBIconView : UIView
+- (SBIcon *)icon;
+- (SBUIForceTouchGestureRecognizer *)appIconForceTouchGestureRecognizer;
 @end
 
 @interface SBIconModel : NSObject
@@ -14,14 +24,98 @@
 
 @interface SBIconViewMap : NSObject
 + (instancetype)homescreenMap;
+- (SBIconView *)mappedIconViewForIcon:(SBIcon *)icon;
 - (SBIconView *)iconViewForIcon:(SBIcon *)icon;
+- (SBIconView *)_iconViewForIcon:(SBIcon *)icon;
 @end
 
-@interface SBIconController : UIViewController
+@interface SBIconAccessoryViewMap : SBIconViewMap
+@end
+
+@interface SBUIAction : NSObject
+@end
+
+@interface SBSApplicationShortcutItem : NSObject
+@end
+
+@interface SBUIAppIconForceTouchShortcutViewController : UIViewController
+- (SBUIAction *)_actionFromApplicationShortcutItem:(SBSApplicationShortcutItem *)item;
+@end
+
+@interface SBUIIconForceTouchController : NSObject
+- (void)_setupWithGestureRecognizer:(SBUIForceTouchGestureRecognizer *)recognizer;
+- (void)_presentAnimated:(BOOL)animated withCompletionHandler:(id)handler;
+@end
+
+@interface SBUIAppIconForceTouchController : NSObject {
+	SBUIIconForceTouchController *_iconForceTouchController;
+}
+- (void)_setupWithGestureRecognizer:(SBUIForceTouchGestureRecognizer *)recognizer;
+- (void)_peekAnimated:(BOOL)animated withRelativeTouchForce:(double)force allowSmoothing:(BOOL)smooth;
+- (void)presentAnimated:(BOOL)animated withCompletionHandler:(id)handler;
+- (void)appIconForceTouchShortcutViewController:(SBUIAppIconForceTouchShortcutViewController *)controller activateApplicationShortcutItem:(SBSApplicationShortcutItem *)item;
+@end
+
+@interface SBIconController : UIViewController {
+	SBUIAppIconForceTouchController *_appIconForceTouchController;
+}
 @property (nonatomic, readonly, strong) SBIconModel *model;
 + (instancetype)sharedInstance;
-- (void)_revealMenuForIconView:(SBIconView *)iconView presentImmediately:(BOOL)presentImmediately;
+- (SBIconViewMap *)homescreenIconViewMap;
 - (void)scrollToIconListContainingIcon:(SBIcon *)icon animate:(BOOL)animate;
+- (void)_revealMenuForIconView:(SBIconView *)iconView presentImmediately:(BOOL)presentImmediately;
+- (void)appIconForceTouchController:(SBUIAppIconForceTouchController *)controller willPresentForGestureRecognizer:(SBUIForceTouchGestureRecognizer *)recognizer;
+- (void)_runAppIconForceTouchTest:(NSString *)test withOptions:(NSDictionary *)options;
+@end
+
+// These hacks are required in iOS 10
+@implementation UITraitCollection (Hack)
+
++ (void)load
+{
+	static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        Class class = object_getClass((id)self);
+        SEL originalSelector = @selector(traitCollectionWithForceTouchCapability:);
+        SEL swizzledSelector = @selector(hax_traitCollectionWithForceTouchCapability:);
+        Method originalMethod = class_getClassMethod(class, originalSelector);
+        Method swizzledMethod = class_getClassMethod(class, swizzledSelector);
+        BOOL didAddMethod = class_addMethod(class, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod));
+        if (didAddMethod)
+            class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
+        else
+            method_exchangeImplementations(originalMethod, swizzledMethod);
+    });
+}
+
+- (int)forceTouchCapability
+{
+	return 2;
+}
+
++ (UITraitCollection *)hax_traitCollectionWithForceTouchCapability:(int)capability
+{
+	return [self hax_traitCollectionWithForceTouchCapability:2];
+}
+
+@end
+
+@implementation UIDevice (Override)
+
+- (BOOL)_supportsForceTouch
+{
+	return YES;
+}
+
+@end
+
+@implementation UIScreen (Override)
+
+- (int)_forceTouchCapability
+{
+	return 2;
+}
+
 @end
 
 static dispatch_source_t server = nil;
@@ -73,10 +167,33 @@ static void SBShortcutMenuListenerInitialize() {
 
                 SBIconController *controller = [NSClassFromString(@"SBIconController") sharedInstance];
                 SBIcon *icon = [controller.model applicationIconForBundleIdentifier:bundleIdentifier];
+                if (icon == nil) {
+                	NSLog(@"Application not found: %@", bundleIdentifier);
+                	return;
+                }
                 [controller scrollToIconListContainingIcon:icon animate:NO];
-
-                SBIconView *iconView = [[NSClassFromString(@"SBIconViewMap") homescreenMap] iconViewForIcon:icon];
-                [controller _revealMenuForIconView:iconView presentImmediately:YES];
+				
+				if ([UIDevice.currentDevice.systemVersion floatValue] >= 10) {
+					
+					// There exists SpringBoard test for App icon Force Touch, but I don't know how to get it working yet
+					/*NSDictionary *options = @{ @"testApplication" : [icon retain] };
+                	[controller _runAppIconForceTouchTest:@"AppIconForceTouchPeek" withOptions:options];
+                	[controller _runAppIconForceTouchTest:@"AppIconForceTouchPresent" withOptions:options];*/
+                	
+                	SBIconView *iconView = [[controller homescreenIconViewMap] mappedIconViewForIcon:icon];
+                	SBUIForceTouchGestureRecognizer *recognizer = [iconView appIconForceTouchGestureRecognizer];
+                	SBUIAppIconForceTouchController *forceTouch;
+                	object_getInstanceVariable(controller, "_appIconForceTouchController", (void **)&forceTouch);
+                	SBUIIconForceTouchController *ftController;
+                	object_getInstanceVariable(forceTouch, "_iconForceTouchController", (void **)&ftController);
+                	[forceTouch _setupWithGestureRecognizer:recognizer];
+                	// or [ftController _setupWithGestureRecognizer:recognizer];
+                	[ftController _presentAnimated:YES withCompletionHandler:nil];
+				} else {
+					SBIconView *iconView = [[NSClassFromString(@"SBIconViewMap") homescreenMap] iconViewForIcon:icon];
+					[controller _revealMenuForIconView:iconView presentImmediately:YES];
+				}
+                
             }
         });
     });
