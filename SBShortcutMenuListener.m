@@ -4,7 +4,6 @@
 
 #define ANY_DEVICE
 
-// Many interfaces here, obviously a tough research
 @interface SBUIForceTouchGestureRecognizer : UIGestureRecognizer
 @end
 
@@ -58,13 +57,20 @@
 - (void)appIconForceTouchShortcutViewController:(SBUIAppIconForceTouchShortcutViewController *)controller activateApplicationShortcutItem:(SBSApplicationShortcutItem *)item;
 @end
 
+@interface SBApplicationShortcutMenu : NSObject
+- (void)updateFromPressGestureRecognizer:(UIGestureRecognizer *)recognizer;
+- (void)presentAnimated:(BOOL)animated;
+@end
+
 @interface SBIconController : UIViewController {
 	SBUIAppIconForceTouchController *_appIconForceTouchController;
 }
 @property (nonatomic, readonly, strong) SBIconModel *model;
 + (instancetype)sharedInstance;
 - (SBIconViewMap *)homescreenIconViewMap;
+- (SBApplicationShortcutMenu *)presentedShortcutMenu;
 - (void)scrollToIconListContainingIcon:(SBIcon *)icon animate:(BOOL)animate;
+- (void)_revealMenuForIconView:(SBIconView *)iconView;
 - (void)_revealMenuForIconView:(SBIconView *)iconView presentImmediately:(BOOL)presentImmediately;
 - (void)appIconForceTouchController:(SBUIAppIconForceTouchController *)controller willPresentForGestureRecognizer:(SBUIForceTouchGestureRecognizer *)recognizer;
 - (void)_runAppIconForceTouchTest:(NSString *)test withOptions:(NSDictionary *)options;
@@ -178,22 +184,23 @@ static void SBShortcutMenuListenerInitialize() {
 				}
 				[controller scrollToIconListContainingIcon:icon animate:NO];
 				
-				if ([UIDevice.currentDevice.systemVersion floatValue] >= 10) {
-					
-					// There exists SpringBoard test for App icon Force Touch, but I don't know how to get it working yet
-					// NSDictionary *options = @{ @"testApplication" : [icon retain] };
-					// [controller _runAppIconForceTouchTest:@"AppIconForceTouchPeek" withOptions:options];
-					// [controller _runAppIconForceTouchTest:@"AppIconForceTouchPresent" withOptions:options];
-                	
+				if ([UIDevice.currentDevice.systemVersion floatValue] >= 9.2) {
 					SBIconView *iconView = [[controller homescreenIconViewMap] mappedIconViewForIcon:icon];
-					SBUIForceTouchGestureRecognizer *recognizer = [iconView appIconForceTouchGestureRecognizer];
-					SBUIAppIconForceTouchController *forceTouch;
-					object_getInstanceVariable(controller, "_appIconForceTouchController", (void **)&forceTouch);
-					SBUIIconForceTouchController *ftController;
-					object_getInstanceVariable(forceTouch, "_iconForceTouchController", (void **)&ftController);
-					[forceTouch _setupWithGestureRecognizer:recognizer];
-					// or [ftController _setupWithGestureRecognizer:recognizer];
-					[ftController _presentAnimated:YES withCompletionHandler:nil];
+					if ([UIDevice.currentDevice.systemVersion floatValue] >= 10.0) {
+						// iOS 10
+						SBUIForceTouchGestureRecognizer *recognizer = [iconView appIconForceTouchGestureRecognizer];
+						SBUIAppIconForceTouchController *forceTouch;
+						object_getInstanceVariable(controller, "_appIconForceTouchController", (void **)&forceTouch);
+						SBUIIconForceTouchController *ftController;
+						object_getInstanceVariable(forceTouch, "_iconForceTouchController", (void **)&ftController);
+						[forceTouch _setupWithGestureRecognizer:recognizer];
+						// or [ftController _setupWithGestureRecognizer:recognizer];
+						[ftController _presentAnimated:YES withCompletionHandler:nil];
+					} else {
+						// iOS 9.2/9.3
+						[controller _revealMenuForIconView:iconView];
+						[[controller presentedShortcutMenu] presentAnimated:YES];
+					}
 				} else {
 					SBIconView *iconView = [[NSClassFromString(@"SBIconViewMap") homescreenMap] iconViewForIcon:icon];
 					[controller _revealMenuForIconView:iconView presentImmediately:YES];
