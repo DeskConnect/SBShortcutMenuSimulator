@@ -9,12 +9,12 @@
 ## Build
 
 ``` sh
-git clone https://github.com/DeskConnect/SBShortcutMenuSimulator.git
+git clone https://github.com/PoomSmart/SBShortcutMenuSimulator.git
 cd SBShortcutMenuSimulator
 make
 ```
 
-**Note:** If you installed SBShortcutMenuSimulator using the old method, go [here](https://github.com/DeskConnect/SBShortcutMenuSimulator/blob/85c3d73b9e22a20e5c59144fa1b3d19883a68f0e/README.md) and follow the uninstallation directions.
+**Note:** If you installed SBShortcutMenuSimulator using the old method, go [here](https://github.com/PoomSmart/SBShortcutMenuSimulator/blob/85c3d73b9e22a20e5c59144fa1b3d19883a68f0e/README.md) and follow the uninstallation directions.
 
 ## Usage
 
@@ -39,7 +39,17 @@ You can also run show script, which shows the quick action menu of an app given 
 ./show com.apple.mobilecal
 ```
 
-<img src="https://raw.githubusercontent.com/DeskConnect/SBShortcutMenuSimulator/screenshot/Shortcuts.png" width="326" height="592"></img>
+<img src="https://raw.githubusercontent.com/PoomSmart/SBShortcutMenuSimulator/screenshot/Shortcuts.png" width="326" height="592"></img>
+
+## Bundle identifiers Apple default apps with Quick Actions
+Calendar:     com.apple.mobilecal
+Contacts:     com.apple.MobileAddressBook
+GameCenter:   com.apple.gamecenter
+Health:       com.apple.Health
+MobileSafari: com.apple.mobilesafari
+News:         com.apple.news
+Photos:       com.apple.mobileslideshow
+Reminders:    com.apple.reminders
 
 ## License
 
