@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z $1 ];then
+	echo "Please provide application identifier."
+	exit
+fi
+
+echo $1 | nc 127.0.0.1 8000
