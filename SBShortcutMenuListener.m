@@ -2,8 +2,6 @@
 #import <objc/runtime.h>
 #include <arpa/inet.h>
 
-#define ANY_DEVICE
-
 @interface SBUIForceTouchGestureRecognizer : UIGestureRecognizer
 @end
 
@@ -75,59 +73,6 @@
 - (void)appIconForceTouchController:(SBUIAppIconForceTouchController *)controller willPresentForGestureRecognizer:(SBUIForceTouchGestureRecognizer *)recognizer;
 - (void)_runAppIconForceTouchTest:(NSString *)test withOptions:(NSDictionary *)options;
 @end
-
-#ifdef ANY_DEVICE
-
-@implementation UITraitCollection (Hack)
-
-+ (void)load
-{
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		Class class = object_getClass((id)self);
-		SEL originalSelector = @selector(traitCollectionWithForceTouchCapability:);
-		SEL swizzledSelector = @selector(hax_traitCollectionWithForceTouchCapability:);
-		Method originalMethod = class_getClassMethod(class, originalSelector);
-		Method swizzledMethod = class_getClassMethod(class, swizzledSelector);
-		BOOL didAddMethod = class_addMethod(class, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod));
-		if (didAddMethod)
-			class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
-		else
-		method_exchangeImplementations(originalMethod, swizzledMethod);
-	});
-}
-
-- (int)forceTouchCapability
-{
-	return 2;
-}
-
-+ (UITraitCollection *)hax_traitCollectionWithForceTouchCapability:(int)capability
-{
-	return [self hax_traitCollectionWithForceTouchCapability:2];
-}
-
-@end
-
-@implementation UIDevice (Override)
-
-- (BOOL)_supportsForceTouch
-{
-	return YES;
-}
-
-@end
-
-@implementation UIScreen (Override)
-
-- (int)_forceTouchCapability
-{
-	return 2;
-}
-
-@end
-
-#endif
 
 static dispatch_source_t server = nil;
 
@@ -202,6 +147,7 @@ static void SBShortcutMenuListenerInitialize() {
 						[[controller presentedShortcutMenu] presentAnimated:YES];
 					}
 				} else {
+					// iOS 9.0/9.1
 					SBIconView *iconView = [[NSClassFromString(@"SBIconViewMap") homescreenMap] iconViewForIcon:icon];
 					[controller _revealMenuForIconView:iconView presentImmediately:YES];
 				}  
