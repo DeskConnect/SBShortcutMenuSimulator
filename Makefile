@@ -4,6 +4,7 @@ all: SBShortcutMenuSimulator.dylib
 
 SBShortcutMenuSimulator.dylib: SBShortcutMenuListener.o 
 	$(CLANG_SIMULATOR) -dynamiclib -o $@ $^
+	ldid -S $@
 
 %.o: %.m
 	$(CLANG_SIMULATOR) -c -o $@ $< 

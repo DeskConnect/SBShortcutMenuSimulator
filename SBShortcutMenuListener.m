@@ -19,6 +19,7 @@
 
 @interface SBIconModel : NSObject
 - (SBIcon *)applicationIconForBundleIdentifier:(NSString *)bundleIdentifier;
+- (NSArray *)leafIcons;
 @end
 
 @interface SBIconViewMap : NSObject
